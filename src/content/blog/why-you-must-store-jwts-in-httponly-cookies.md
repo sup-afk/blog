@@ -2,7 +2,7 @@
 title: "🔒 Why you must store JWTs in HttpOnly Cookies"
 description: ""
 pubDate: "June 08 2025"
-setup:
+tags: ["Jsonwebtoken"]
 ---
 
 ## Introduction: Token-Based Authentication

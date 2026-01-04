@@ -2,7 +2,7 @@
 title: "🔄 How JavaScript's Event Loop Really Works"
 description: ""
 pubDate: "June 08 2025"
-setup:
+tags : ["Javascript"]
 ---
 
 ## Intro

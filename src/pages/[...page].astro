@@ -1,0 +1,178 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import { getCollection } from "astro:content";
+import FormattedDate from "../components/FormattedDate.astro";
+import Pagination from "../components/Pagination.astro";
+import type { Page } from "astro";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  page: Page<CollectionEntry<"blog">>;
+}
+
+export async function getStaticPaths({ paginate }: any) {
+  const posts = (await getCollection("blog")).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+
+  return paginate(posts, { pageSize: 5 });
+}
+
+const { page } = Astro.props;
+const items = page.data;
+
+const allPosts = await getCollection("blog");
+const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <style>
+      main {
+        width: 800px;
+        min-height: calc(100vh - 78px);
+      }
+      .search-container {
+        display: flex;
+        justify-content: center;
+        padding: 1em;
+      }
+
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+      }
+      .tag-pill {
+        padding: 0.2rem 0.8rem;
+        background: #f0f0f0;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        text-decoration: none;
+        color: #444;
+      }
+      .tag-pill:hover {
+        background: var(--coffee-almond);
+        color: white;
+      }
+
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2rem;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+      }
+      ul li {
+        width: 100%;
+      }
+      ul li * {
+        text-decoration: none;
+        transition: 0.2s ease;
+      }
+
+      ul li a {
+        display: flex;
+      }
+
+      ul li a .blog-description {
+      }
+
+      .title {
+        margin: 0;
+        color: rgb(var(--black));
+        line-height: 1;
+      }
+      .date {
+        margin: 0;
+        color: rgb(var(--gray));
+      }
+      ul li a:hover h4,
+      ul li a:hover .date {
+        color: var(--coffee-almond);
+      }
+      ul a:hover img {
+        box-shadow: var(--box-shadow);
+      }
+      @media (max-width: 720px) {
+        ul {
+          gap: 0.5em;
+        }
+        ul li {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <div class="search-container">
+        <input type="text" placeholder="Search" />
+      </div>
+
+      <div class="tags-container">
+        {
+          tags.map((tag) =>
+            tag ? (
+              <a href={`${import.meta.env.PUBLIC_BASE_URL}/tags/${tag}/1/`} class="tag-pill">
+                #{tag}
+              </a>
+            ) : (
+              ""
+            )
+          )
+        }
+      </div>
+      <section>
+        <ul>
+          {
+            items.map((post) => (
+              <li>
+                <a href={`${import.meta.env.PUBLIC_BASE_URL}/contents/${post.id}/`}>
+                  <div class="blog-description">
+                    <h4 class="title">{post.data.title}</h4>
+                    <p class="date">
+                      <FormattedDate date={post.data.pubDate} />
+                    </p>
+                  </div>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <Pagination
+        prevUrl={page.url.prev}
+        nextUrl={page.url.next}
+        current={page.currentPage}
+        last={page.lastPage}
+      />
+    </main>
+    <Footer />
+  </body><script>
+    const searchInput = document.querySelector('input[type="text"]');
+    const postItems = document.querySelectorAll("ul li");
+
+    searchInput?.addEventListener("input", (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
+
+      postItems.forEach((item) => {
+        const title = item.querySelector(".title")?.textContent?.toLowerCase();
+        if (title?.includes(searchTerm)) {
+          (item as HTMLElement).style.display = "block";
+        } else {
+          (item as HTMLElement).style.display = "none";
+        }
+      });
+    });
+  </script>
+</html>
